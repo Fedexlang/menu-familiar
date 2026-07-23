@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menú Familiar</title>
+<style>
+  :root{
+    --purple-dark:#7b3f8f;
+    --purple:#9c5aab;
+    --purple-light:#e9d9ee;
+    --purple-lighter:#f5ecf8;
+    --ink:#2b2230;
+    --paper:#fffdfb;
+    --border:#d9c3e0;
+    --accent:#c77dd1;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:linear-gradient(180deg,#f8f2fa 0%, #f1e5f5 100%);
+    color:var(--ink);
+    padding:24px 16px 80px;
+  }
+  h1{
+    text-align:center;
+    font-size:1.6rem;
+    color:var(--purple-dark);
+    margin:0 0 4px;
+    letter-spacing:0.02em;
+  }
+  .subtitle{
+    text-align:center;
+    color:#7a6a80;
+    font-size:0.9rem;
+    margin-bottom:20px;
+  }
+  .toolbar{
+    max-width:1200px;
+    margin:0 auto 18px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+  }
+  button{
+    font-family:inherit;
+    font-size:0.85rem;
+    padding:9px 14px;
+    border-radius:8px;
+    border:1px solid var(--purple);
+    background:var(--paper);
+    color:var(--purple-dark);
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  button:hover{ background:var(--purple-light); }
+  button.primary{
+    background:var(--purple-dark);
+    color:#fff;
+    border-color:var(--purple-dark);
+  }
+  button.primary:hover{ background:var(--purple); }
+  button.danger{
+    border-color:#c0546b;
+    color:#c0546b;
+  }
+  button.danger:hover{ background:#fbe6ea; }
+
+  .table-wrap{
+    max-width:1200px;
+    margin:0 auto;
+    overflow-x:auto;
+    border-radius:12px;
+    box-shadow:0 6px 24px rgba(123,63,143,0.14);
+    background:var(--paper);
+  }
+  table{
+    border-collapse:collapse;
+    width:100%;
+    min-width:760px;
+  }
+  th, td{
+    border:1px solid var(--border);
+    padding:12px 14px;
+    vertical-align:top;
+    font-size:0.92rem;
+  }
+  thead th{
+    background:var(--purple-dark);
+    color:#fff;
+    font-weight:600;
+    text-align:center;
+    position:relative;
+  }
+  thead th.corner{
+    background:var(--purple-dark);
+  }
+  tbody th{
+    background:var(--purple-light);
+    color:var(--purple-dark);
+    text-align:left;
+    white-space:nowrap;
+    font-weight:700;
+  }
+  td[contenteditable="true"], th[contenteditable="true"]{
+    outline:none;
+    min-width:160px;
+    white-space:pre-wrap;
+    cursor:text;
+  }
+  td[contenteditable="true"]:hover, th[contenteditable="true"]:hover{
+    background:#fdf7ff;
+  }
+  td[contenteditable="true"]:focus, th[contenteditable="true"]:focus{
+    background:#fff;
+    box-shadow:inset 0 0 0 2px var(--accent);
+  }
+  .col-actions{
+    text-align:center;
+    padding:4px !important;
+  }
+  .col-actions button{
+    padding:4px 8px;
+    font-size:0.75rem;
+    margin:2px;
+  }
+  .row-actions{
+    text-align:center;
+  }
+  .status{
+    max-width:1200px;
+    margin:14px auto 0;
+    text-align:center;
+    font-size:0.82rem;
+    color:#8a7a90;
+    min-height:1.2em;
+  }
+  .status.show{ color:var(--purple-dark); font-weight:600; }
+  footer{
+    text-align:center;
+    margin-top:30px;
+    font-size:0.78rem;
+    color:#a595aa;
+  }
+  @media print{
+    .toolbar, .status, footer, .col-actions, .row-actions-col{ display:none !important; }
+    body{ background:#fff; padding:0; }
+    .table-wrap{ box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🍽️ Menú Familiar</h1>
+<div class="subtitle">Hacé click en cualquier celda para editarla. Los cambios quedan guardados en este navegador.</div>
+
+<div class="toolbar">
+  <button id="addDay">➕ Agregar día</button>
+  <button id="addRow">➕ Agregar fila</button>
+  <button id="saveFile" class="primary">💾 Descargar copia (HTML)</button>
+  <button id="exportJson">⬇️ Exportar datos (JSON)</button>
+  <button id="importJsonBtn">⬆️ Importar datos (JSON)</button>
+  <input type="file" id="importJson" accept="application/json" style="display:none">
+  <button id="printBtn">🖨️ Imprimir</button>
+  <button id="resetBtn" class="danger">↺ Restaurar original</button>
+</div>
+
+<div class="table-wrap">
+  <table id="menuTable">
+    <thead>
+      <tr id="headRow">
+        <th class="corner"></th>
+        <th class="corner col-actions"></th>
+        <!-- day headers injected by JS -->
+      </tr>
+    </thead>
+    <tbody id="menuBody">
+      <!-- rows injected by JS -->
+    </tbody>
+  </table>
+</div>
+
+<div class="status" id="status"></div>
+
+<footer>Menú familiar · editable · alojado en GitHub Pages</footer>
+
+<script>
+/* ---------- Datos originales (los de la foto) ---------- */
+const DEFAULT_DATA = {
+  days: ["Miércoles 29", "Jueves 30", "Viernes 31", "Sabado 1", "Domingo 1"],
+  rows: [
+    {
+      label: "Desayuno",
+      merged: true,
+      mergedText: "Cada familia resuelve lo suyo",
+      cells: ["", "", "", "", ""]
+    },
+    {
+      label: "Almuerzo",
+      merged: false,
+      cells: [
+        "",
+        "Arroz con pollo\n- Arroz: Collado\n- Alonso: Frijoles",
+        "Cada familia resuleve lo suyo",
+        "",
+        ""
+      ]
+    },
+    {
+      label: "Cena",
+      merged: false,
+      cells: [
+        "Nachos\n- Davidovich: pollo y chips\n- González: Mechada y frijoles\n- Alonso: Queso, Pico de Gallo, Natilla, Guacamole",
+        "Hamburguesas:\n- Cada uno lleva su pan y carne\n- Davidovich: Tomate y lechuga\n- González: Queso\n- Alonso: cebolla y hongos",
+        "Asado\n- Cada uno lleva su carne.\n- Davidovich: Frijoles Molidos\n- Oma: Elotes\n- Alonso: Mini papas",
+        "Perros Calientes:\n- Cada uno lleva sus panes y salchichas\n- Davidovich: Chili con carne\n- Alonso: Repollo y Mac & Cheese\n- Oma: Pico de gallo",
+        ""
+      ]
+    }
+  ]
+};
+
+const STORAGE_KEY = "menuFamiliarData";
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveData(data){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }catch(e){}
+}
+
+let data = loadData();
+
+function showStatus(msg){
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(showStatus._t);
+  showStatus._t = setTimeout(()=>{ el.classList.remove('show'); el.textContent=''; }, 2200);
+}
+
+function textToHtml(t){
+  return (t || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+}
+
+function htmlToText(el){
+  // Convert <br> and block breaks back to \n
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+  clone.querySelectorAll('div,p').forEach(d => { d.after('\n'); });
+  return clone.textContent.replace(/\n{2,}/g,'\n').trim();
+}
+
+function render(){
+  const headRow = document.getElementById('headRow');
+  const body = document.getElementById('menuBody');
+
+  // limpiar encabezados de días (dejar las 2 primeras celdas fijas)
+  while(headRow.children.length > 2) headRow.removeChild(headRow.lastChild);
+
+  data.days.forEach((day, di) => {
+    const th = document.createElement('th');
+    th.contentEditable = "true";
+    th.innerHTML = textToHtml(day);
+    th.addEventListener('blur', () => {
+      data.days[di] = htmlToText(th);
+      saveData(data);
+    });
+    headRow.appendChild(th);
+
+    // botón eliminar día
+    const wrap = document.createElement('div');
+  });
+
+  // fila de acciones para eliminar días (segunda fila del thead, opcional) -> usamos botones dentro del th mismo
+  // Agregamos botón "x" pequeño flotante via title, simplificado: click derecho no; agregamos botón aparte debajo del toolbar en su lugar.
+
+  body.innerHTML = "";
+  data.rows.forEach((row, ri) => {
+    const tr = document.createElement('tr');
+
+    const th = document.createElement('th');
+    th.contentEditable = "true";
+    th.textContent = row.label;
+    th.addEventListener('blur', () => {
+      data.rows[ri].label = th.textContent.trim();
+      saveData(data);
+    });
+    tr.appendChild(th);
+
+    // celda de acciones de fila
+    const actTd = document.createElement('td');
+    actTd.className = 'col-actions row-actions-col';
+    const delRowBtn = document.createElement('button');
+    delRowBtn.textContent = '🗑️';
+    delRowBtn.title = 'Eliminar fila';
+    delRowBtn.addEventListener('click', () => {
+      if(confirm(`¿Eliminar la fila "${row.label}"?`)){
+        data.rows.splice(ri,1);
+        saveData(data);
+        render();
+      }
+    });
+    actTd.appendChild(delRowBtn);
+    tr.appendChild(actTd);
+
+    if(row.merged){
+      const td = document.createElement('td');
+      td.colSpan = data.days.length;
+      td.style.textAlign = 'center';
+      td.contentEditable = "true";
+      td.innerHTML = textToHtml(row.mergedText || "");
+      td.addEventListener('blur', () => {
+        data.rows[ri].mergedText = htmlToText(td);
+        saveData(data);
+      });
+      tr.appendChild(td);
+    } else {
+      data.days.forEach((day, di) => {
+        const td = document.createElement('td');
+        td.contentEditable = "true";
+        td.innerHTML = textToHtml(row.cells[di] || "");
+        td.addEventListener('blur', () => {
+          data.rows[ri].cells[di] = htmlToText(td);
+          saveData(data);
+        });
+        tr.appendChild(td);
+      });
+    }
+
+    body.appendChild(tr);
+  });
+}
+
+/* ---------- Toolbar actions ---------- */
+
+document.getElementById('addDay').addEventListener('click', () => {
+  const name = prompt("Nombre del nuevo día (ej: Lunes 2):", "Nuevo día");
+  if(!name) return;
+  data.days.push(name);
+  data.rows.forEach(row => {
+    if(!row.merged) row.cells.push("");
+  });
+  saveData(data);
+  render();
+  showStatus("Día agregado ✅");
+});
+
+document.getElementById('addRow').addEventListener('click', () => {
+  const label = prompt("Nombre de la nueva fila (ej: Merienda):", "Nueva comida");
+  if(!label) return;
+  data.rows.push({
+    label,
+    merged:false,
+    cells: data.days.map(()=> "")
+  });
+  saveData(data);
+  render();
+  showStatus("Fila agregada ✅");
+});
+
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if(confirm("Esto va a borrar todos tus cambios y volver al menú original de la imagen. ¿Continuar?")){
+    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    saveData(data);
+    render();
+    showStatus("Restaurado al original ✅");
+  }
+});
+
+document.getElementById('exportJson').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'menu-familiar-datos.json';
+  a.click();
+  showStatus("Datos exportados ✅");
+});
+
+document.getElementById('importJsonBtn').addEventListener('click', () => {
+  document.getElementById('importJson').click();
+});
+
+document.getElementById('importJson').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try{
+      const imported = JSON.parse(ev.target.result);
+      if(!imported.days || !imported.rows) throw new Error("Formato inválido");
+      data = imported;
+      saveData(data);
+      render();
+      showStatus("Datos importados ✅");
+    }catch(err){
+      alert("No se pudo leer el archivo JSON: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+document.getElementById('saveFile').addEventListener('click', () => {
+  // Genera una copia completa del HTML actual (con los datos embebidos) para descargar
+  const currentData = JSON.stringify(data, null, 2);
+  const htmlSource = document.documentElement.outerHTML
+    .replace(/const DEFAULT_DATA = [\s\S]*?;\n\nconst STORAGE_KEY/, `const DEFAULT_DATA = ${currentData};\n\nconst STORAGE_KEY`);
+  const blob = new Blob(["<!DOCTYPE html>\n" + htmlSource], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'menu-familiar.html';
+  a.click();
+  showStatus("Copia descargada ✅");
+});
+
+render();
+</script>
+</body>
+</html>
