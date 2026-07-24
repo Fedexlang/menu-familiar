@@ -192,6 +192,11 @@ const DEFAULT_DATA = {
   days: ["Miércoles 29", "Jueves 30", "Viernes 31", "Sabado 1", "Domingo 1"],
   rows: [
     {
+      label: "Cantidad de personas",
+      merged: false,
+      cells: ["31", "39", "39", "39", "39"]
+    },
+    {
       label: "Desayuno",
       merged: true,
       mergedText: "Cada familia resuelve lo suyo",
@@ -202,9 +207,9 @@ const DEFAULT_DATA = {
       merged: false,
       cells: [
         "",
+        "Cada familia resuelve lo suyo",
+        "Cada familia resuelve lo suyo",
         "Arroz con pollo\n- Arroz: Collado\n- Alonso: Frijoles",
-        "Cada familia resuleve lo suyo",
-        "",
         ""
       ]
     },
@@ -212,10 +217,10 @@ const DEFAULT_DATA = {
       label: "Cena",
       merged: false,
       cells: [
-        "Nachos\n- Davidovich: pollo y chips\n- González: Mechada y frijoles\n- Alonso: Queso, Pico de Gallo, Natilla, Guacamole",
-        "Hamburguesas:\n- Cada uno lleva su pan y carne\n- Davidovich: Tomate y lechuga\n- González: Queso\n- Alonso: cebolla y hongos",
-        "Asado\n- Cada uno lleva su carne.\n- Davidovich: Frijoles Molidos\n- Oma: Elotes\n- Alonso: Mini papas",
-        "Perros Calientes:\n- Cada uno lleva sus panes y salchichas\n- Davidovich: Chili con carne\n- Alonso: Repollo y Mac & Cheese\n- Oma: Pico de gallo",
+        "Nachos\n- Davidovich: pollo y chips\n- González: Mechada y frijoles\n- Alonso: Queso, Pico de Gallo, Guacamole\n- collado: carne molida y natilla",
+        "Hamburguesas:\n- Cada uno lleva su pan y carne\n- Davidovich: vegetales a la parrilla\n- González: Queso\n- Alonso: cebolla y hongos\n- collado: salsas y papas\n- guth: lechuga y tomate",
+        "Asado\n- Cada uno lleva su carne.\n- Davidovich: Frijoles Molidos\n- Oma: Elotes\n- Alonso: Mini papas\n- collado: guacamole\n- guth: pico de gallo",
+        "Perros Calientes:\n- Cada uno lleva sus panes y salchichas\n- Davidovich: Chili con carne\n- Alonso: Repollo y Mac & Cheese\n- Oma: papitas\n- guth: salsas\n- collado:",
         ""
       ]
     }
